@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Libros - Tienda Online</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <header class="mb-4 pb-3 border-bottom d-flex justify-content-between align-items-center">
+            <h1 class="h3 text-primary">📚 Tienda de Libros</h1>
+            <div id="auth-controls">
+            </div>
+        </header>
+
+        
+        <div id="message-container" class="mb-3"></div>
+
+        
+        <div id="book-list-view" class="d-none">
+            <h2 class="h4 mb-4">Inventario de Libros</h2>
+            <div id="books-container" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            </div>
+        </div>
+
+        
+        <div id="auth-modal-overlay" class="d-flex justify-content-center align-items-center position-fixed w-100 h-100 bg-dark bg-opacity-75" style="top: 0; left: 0; z-index: 1050;">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="auth-modal-title">Iniciar Sesión</h5>
+                        <button type="button" class="btn-close" onclick="closeAuthModal()" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="auth-form">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Nombre de Usuario</label>
+                                <input type="text" class="form-control" id="username" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Contraseña</label>
+                                <input type="password" class="form-control" id="password" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-custom w-100" id="auth-submit-btn">Entrar</button>
+                        </form>
+                    </div>
+                    <div class="modal-footer justify-content-center">
+                        <small>
+                            <a href="#" id="toggle-auth-mode">¿No tienes cuenta? Regístrate aquí.</a>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="modal fade" id="purchase-modal" tabindex="-1" aria-labelledby="purchase-modal-label" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="purchase-modal-label">Comprar Libro</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Estás a punto de comprar: <strong id="book-title-to-buy"></strong></p>
+                        <form id="purchase-form">
+                            <input type="hidden" id="purchase-book-id">
+                            <div class="mb-3">
+                                <label for="purchase-quantity" class="form-label">Cantidad a Comprar</label>
+                                <input type="number" class="form-control" id="purchase-quantity" min="1" value="1" required>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-custom w-100">Confirmar Compra</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script src="js/book_store.js"></script>
+</body>
+</html>
