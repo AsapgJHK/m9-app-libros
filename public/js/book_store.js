@@ -1,10 +1,4 @@
-let BOOKS = [
-    { id: 1, nombre: "Cien Años de Soledad", cantidad_disponible: 15 },
-    { id: 2, nombre: "1984", cantidad_disponible: 8 },
-    { id: 3, nombre: "El Principito", cantidad_disponible: 25 },
-    { id: 4, nombre: "Don Quijote de la Mancha", cantidad_disponible: 5 },
-    { id: 5, nombre: "Un Mundo Feliz", cantidad_disponible: 12 },
-];
+let BOOKS = []; // Ahora solo contendrá la data cargada de la DB
 
 
 const USERS_DB = JSON.parse(localStorage.getItem('app_users')) || [
@@ -25,7 +19,8 @@ function generateJWT(username) {
     const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
     const payload = btoa(JSON.stringify({ sub: username, iat: Date.now() }));
     
-    const signature = btoa(username + JWT_SECRET);
+    // NOTA DE SEGURIDAD: En un entorno real, la firma debe ser criptográfica y no esta simple concatenación.
+    const signature = btoa(username + JWT_SECRET); 
     return `${header}.${payload}.${signature}`;
 }
 
@@ -95,46 +90,78 @@ function logout() {
     renderApp();
 }
 
-
-function purchaseBook(bookId, quantity) {
+/**
+ * Llama a la API para realizar la compra y actualiza la lista.
+ * @param {number} bookId 
+ * @param {string|number} quantity 
+ */
+async function purchaseBook(bookId, quantity) {
     if (!loggedInUser) {
         showAlert('Debe iniciar sesión para realizar una compra.', 'danger');
         return false;
     }
 
-    const book = BOOKS.find(b => b.id === bookId);
     const qty = parseInt(quantity, 10);
-
-    if (!book) {
-        showAlert('Error: Libro no encontrado.', 'danger');
-        return false;
-    }
-
     if (qty <= 0) {
         showAlert('Error: La cantidad a comprar debe ser positiva.', 'danger');
         return false;
     }
 
-    
-    if (book.cantidad_disponible < qty) {
-        showAlert(`Error: No hay suficiente stock. Disponibles: ${book.cantidad_disponible}.`, 'danger');
+    try {
+        const response = await fetch('/api/purchase', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ bookId, quantity: qty, user: loggedInUser }) // Enviamos data a la API
+        });
+        
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            // Recargamos el inventario desde el servidor para reflejar el nuevo stock
+            await loadBooks();
+            renderBookList();
+            showAlert(result.message, 'success');
+            return true;
+        } else {
+            // Mostramos errores de stock, 404, o validación del servidor
+            showAlert(`Error de compra: ${result.message}`, 'danger');
+            return false;
+        }
+
+    } catch (e) {
+        showAlert('Error de red: No se pudo conectar con el servidor para la compra.', 'danger');
         return false;
     }
+}
 
-    
-    book.cantidad_disponible -= qty;
-    
-    
-    renderBookList();
-    showAlert(`¡Compra exitosa! Has comprado ${qty} unidad(es) de "${book.nombre}".`, 'success');
-    
-    return true;
+
+/**
+ * Carga el inventario de libros desde la API (DB).
+ */
+async function loadBooks() {
+    try {
+        const response = await fetch('/api/books');
+        if (!response.ok) {
+            throw new Error('Error al cargar el inventario.');
+        }
+        BOOKS = await response.json(); 
+    } catch (e) {
+        showAlert('Error: No se pudo conectar al servidor para obtener el inventario.', 'danger');
+        BOOKS = []; 
+    }
 }
 
 
 function renderBookList() {
     const container = document.getElementById('books-container');
     container.innerHTML = ''; 
+
+    if (BOOKS.length === 0) {
+        container.innerHTML = '<p class="text-center text-muted">No se pudo cargar el inventario o no hay libros disponibles.</p>';
+        return;
+    }
 
     BOOKS.forEach(book => {
         const isAvailable = book.cantidad_disponible > 0;
@@ -236,8 +263,10 @@ function renderAuthControls() {
     }
 }
 
-
-function renderApp() {
+/**
+ * Función principal para renderizar la aplicación.
+ */
+async function renderApp() {
     
     const token = localStorage.getItem(TOKEN_KEY);
     loggedInUser = validateJWT(token);
@@ -245,7 +274,8 @@ function renderApp() {
     
     renderAuthControls();
     
-    
+    // Cargar y renderizar la lista de libros desde la DB
+    await loadBooks(); 
     renderBookList();
 
     
