@@ -1,4 +1,4 @@
-let BOOKS = []; // Ahora solo contendrá la data cargada de la DB
+let BOOKS = []; 
 
 
 const USERS_DB = JSON.parse(localStorage.getItem('app_users')) || [
@@ -19,7 +19,7 @@ function generateJWT(username) {
     const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
     const payload = btoa(JSON.stringify({ sub: username, iat: Date.now() }));
     
-    // NOTA DE SEGURIDAD: En un entorno real, la firma debe ser criptográfica y no esta simple concatenación.
+    
     const signature = btoa(username + JWT_SECRET); 
     return `${header}.${payload}.${signature}`;
 }
@@ -90,11 +90,7 @@ function logout() {
     renderApp();
 }
 
-/**
- * Llama a la API para realizar la compra y actualiza la lista.
- * @param {number} bookId 
- * @param {string|number} quantity 
- */
+
 async function purchaseBook(bookId, quantity) {
     if (!loggedInUser) {
         showAlert('Debe iniciar sesión para realizar una compra.', 'danger');
@@ -113,19 +109,19 @@ async function purchaseBook(bookId, quantity) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ bookId, quantity: qty, user: loggedInUser }) // Enviamos data a la API
+            body: JSON.stringify({ bookId, quantity: qty, user: loggedInUser }) 
         });
         
         const result = await response.json();
 
         if (response.ok && result.success) {
-            // Recargamos el inventario desde el servidor para reflejar el nuevo stock
+            
             await loadBooks();
             renderBookList();
             showAlert(result.message, 'success');
             return true;
         } else {
-            // Mostramos errores de stock, 404, o validación del servidor
+            
             showAlert(`Error de compra: ${result.message}`, 'danger');
             return false;
         }
@@ -137,9 +133,7 @@ async function purchaseBook(bookId, quantity) {
 }
 
 
-/**
- * Carga el inventario de libros desde la API (DB).
- */
+
 async function loadBooks() {
     try {
         const response = await fetch('/api/books');
@@ -263,9 +257,7 @@ function renderAuthControls() {
     }
 }
 
-/**
- * Función principal para renderizar la aplicación.
- */
+
 async function renderApp() {
     
     const token = localStorage.getItem(TOKEN_KEY);
@@ -274,7 +266,7 @@ async function renderApp() {
     
     renderAuthControls();
     
-    // Cargar y renderizar la lista de libros desde la DB
+    
     await loadBooks(); 
     renderBookList();
 
